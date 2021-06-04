@@ -69,14 +69,14 @@ class Agent:
         self.r = ode(self.f).set_integrator("dopri5") # *** PASS BY REFRENCE??
         self.r.set_initial_value(self.stateTrajectHistory[:, 0], self.tStart)        
         
-        #Index
+        # Agent's index
         if index != None:
             self.index = index
         else:
             raise RuntimeError("Agent's index argument should not be empty!")
             
         #DEBUG
-        print("Agent {} is instantiated.".format(self.index))
+        print("DEBUG: Agent {} is instantiated.".format(self.index))
     
     def f(self, t, x, u):
         """
