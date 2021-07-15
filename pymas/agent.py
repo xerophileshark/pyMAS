@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 
 """
-
+This is the Agent class.
 """
 
 # %% Imports
 # Standard library imports
-
+from abc import ABC, abstractmethod
 
 # Third party imports
 import numpy as np
@@ -15,12 +15,11 @@ from scipy.integrate import ode
 # Local application imports
 
 # %% The Agent class
-class Agent:
+class Agent(ABC):
     
-    def __init__(self, ni=1, no=1, ns=2, f=None, t_start=0, t_end=10, \
-                 *, init_states=None, index=None):
+    def __init__(self, ni=1, no=1, ns=2, f=None, *, tStart=0, \
+                 init_states=None, index: int=None):
         """
-        
         Parameters
         ----------
         ni : TYPE, optional
@@ -33,10 +32,9 @@ class Agent:
         f : TYPE, optional
             DESCRIPTION. The dynamics function.
             The default is a simple double-integrator.
-        t_start : TYPE, optional
-            DESCRIPTION. Start time of simulation. The default is 0.
-        t_end : TYPE, optional
-            DESCRIPTION. Final time of simulation. The default is 10.
+        tStart: float, optional
+            *** It is always 0 except when an agent is introduced to the MAS 
+            in the middle of simulation.
         init_states : TYPE, optional and Keyword-only argument
             DESCRIPTION. The initial values for states. The default is
             the zero vector.
@@ -57,13 +55,14 @@ class Agent:
         self.ns = ns
         
         # Set simulation parameters and initial states (time is in seconds)
-        self.tStart = t_start
-        self.tEnd = t_end
+        self.tStart = tStart # tStart is always 0
         self.times = np.zeros(shape=(1,), dtype="float")
         if type(init_states) == np.ndarray and init_states.shape == (self.ns, 1):
             self.stateTrajectHistory = init_states
         else:
             self.stateTrajectHistory = np.zeros(shape=(self.ns, 1))
+        # Set inputTrajectory (Control input trajectory):
+        self.inputTrajectory = np.zeros(shape=(self.ni, 1))
         
         # Set the ODE solver
         self.r = ode(self.f).set_integrator("dopri5") # *** PASS BY REFRENCE??
@@ -75,10 +74,11 @@ class Agent:
         else:
             raise RuntimeError("Agent's index argument should not be empty!")
             
-        #DEBUG
-        print("DEBUG: Agent {} is instantiated.".format(self.index))
+        # # DEBUG
+        # print("DEBUG: Agent {} is instantiated.".format(self.index))
     
-    def f(self, t, x, u):
+    @abstractmethod
+    def f(self, t, x, u): # -> output type
         """
         This is the default function in dynamics equation of the agent
         in the form of state ODE equations:
@@ -105,29 +105,53 @@ class Agent:
         B = np.zeros(self.ns)
         return np.dot(A, x) + np.dot(B, u)
     
-    def evolve(self, t, u):
+    # def evolve(self, t, u):
+    #     """
+    #     This is the function that is called in each time step to evolve the
+    #     dynamcis of the agent.
+
+    #     Arguments
+    #     ---------
+    #     t: Next simulation time. It is passed by MAS class.
+    #     --> ***: in repeated calls, t should be increased.
+    #     u: Cooperative control input which is passed by MAS and Network
+    #     classes.--> *** NOTE: This may change!
+        
+    #     Returns
+    #     -------
+    #     None.
+
+    #     """
+    #     self.r.set_f_params(u)
+    #     res = self.r.integrate(t)
+    #     if not self.r.successful():
+    #         raise RuntimeError("Agent.agent.evolve(): Could not integrate")
+    #     self.times = np.append(self.times, t)
+    #     self.stateTrajectHistory = np.append(self.stateTrajectHistory, res.reshape((self.ns, 1)), axis=1)
+
+    def evolve(self, t: float, u):
         """
         This is the function that is called in each time step to evolve the
         dynamcis of the agent.
 
         Arguments
         ---------
-        t: Next simulation time. It is passed by MAS class.
-        --> ***: in repeated calls, t should be increased.
-        u: Cooperative control input which is passed by MAS and Network
-        classes.--> *** NOTE: This may change!
+        t : Next simulation time. It is passed by MAS class.
+        u : Cooperative control input which is passed by Dcontroller class.
         
         Returns
         -------
         None.
 
         """
-        self.r.set_f_params(u)
+        self.r.set_f_params(u) # set the control input at current time ( u(t0) ).
         res = self.r.integrate(t)
         if not self.r.successful():
             raise RuntimeError("Agent.agent.evolve(): Could not integrate")
         self.times = np.append(self.times, t)
-        self.stateTrajectHistory = np.append(self.stateTrajectHistory, res.reshape((self.ns, 1)), axis=1)
+        self.stateTrajectHistory = np.append(self.stateTrajectHistory, \
+                                             res.reshape((self.ns, 1)), axis=1)
+        self.inputTrajectory = np.append(self.inputTrajectory, u, axis=1)
         
 # %% Handle direct executions
 if __name__ == "__main__":
