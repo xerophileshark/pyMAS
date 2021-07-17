@@ -42,13 +42,14 @@ class Network:
         start from 0.
         
         *** WE SHOULD CHECK FOR NON-SYMMETRIC MATRICES, TOO. ***
-        """
+        """       
         if agentIndex1 != agentIndex2:
             if self.A[agentIndex1][agentIndex2] != 0:
                 return True
-            else:
-                print(self.A[agentIndex1][agentIndex2])
-                print(self.A)
+            # # DEBUG:
+            # else:
+            #     print(self.A[agentIndex1][agentIndex2])
+            #     print(self.A)
         return False
         
     def get_data(self): # May be removed in future! Or not now that agents list is here!

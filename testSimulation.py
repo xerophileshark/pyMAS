@@ -13,6 +13,8 @@ from pymas import mas
 
 # %%      
 
+DEBUG = True
+
 # Number of inputs & outputs & states of each agent's dynamics & number of agents:
 ni=1
 no=1
@@ -34,11 +36,11 @@ class MyAgent(Agent):
     def f(self, t, x, u):
         return u
 
-# Create a list of (e.g. three) agents with appropriate indexes (start from 0):  
+# Create a list of (e.g. six) agents with appropriate indexes (start from 0):  
 listOfAgents = []
 inits = np.array([[1], [-1], [3], [-3], [5], [-5]])
 for i in range(numOfAgents):
-    # Define initial states for each agent, randomly:
+    # # Define initial states for each agent, randomly:
     # init_states = np.random.rand(ns, 1) * 10
     init_states = inits[i].reshape(ns, 1)
     listOfAgents.append( MyAgent(ni=ni, no=no, ns=ns, tStart=0, \
@@ -65,7 +67,9 @@ class MyDcontroller(Dcontroller):
         return neighbour.stateTrajectHistory[:, -1] - agent.stateTrajectHistory[:, -1]
     
     def controlProtocol(self, agentIndex: int,  t): # Simple sigma protocol
-        print("For agent ", agentIndex, "-- t: ", t)
+        # # DEBUG:
+        # print("For agent ", agentIndex, "-- t: ", t)
+        
         # # if t == 0 then return zero output vector (since u(0) is 0):
         # if t == self.net.agents[agentIndex].tStart:
         #     return np.zeros(shape=(self.no, 1))
@@ -82,14 +86,14 @@ dcont = MyDcontroller(net=net)
 # print(net.agents[0].stateTrajectHistory)
 # print(net.agents[1].stateTrajectHistory)
 # print(net.agents[2].stateTrajectHistory)
-
-numOfIterations = int( (5 - 0) // 0.1 )
-time_list = np.linspace(start=0, stop=5, \
-                        num=numOfIterations+1, endpoint=True)
     
 # %%
+
+# Create a MAS instance
 mas = mas.MAS(network=net, dcontroller=dcont)
 
+# Run the simulation from t=0 to t=15 with step size of 0.05 [sec].
 mas.run(0, 15, 0.05)
 
+# Plot all the state trajectories of all agents:
 mas.plotAll()
