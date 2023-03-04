@@ -3,6 +3,8 @@
 Created on Wed Jul 14 22:16:32 2021
 
 @author: Ali
+
+This is a test simulation for 6 agents with stable 2-state dynamics.
 """
 import numpy as np
 
@@ -17,9 +19,9 @@ DEBUG = True
 
 # Number of inputs & outputs & states of each agent's dynamics & number of agents:
 ni=1
-no=1
-ns=1
-numOfAgents = 6
+no=2
+ns=2
+numOfAgents = 5
 
 # Create my custom Agent class called MyAgent
 class MyAgent(Agent):
@@ -33,16 +35,21 @@ class MyAgent(Agent):
                        init_states=init_states, index=index)
     
     # My custom dynamics: Single integrator: x_dot(t) = u(t) => f = u
-    def f(self, t, x, u):
-        return u
+    def f(self, x, t, u):
+        A = np.array([[0, 1], [-2, -1]])
+        B = np.array([0.5, 1]).reshape(self.ns, 1)
+        return np.dot(A, x) + np.dot(B, u)
+    
+    def output(self):
+        return
 
 # Create a list of (e.g. six) agents with appropriate indexes (start from 0):  
 listOfAgents = []
-inits = np.array([[1], [-1], [3], [-3], [5], [-5]])
+inits = np.array([[1, 1], [-1, -1], [3, 3], [-3, -3], [5, 5], [-5, -5]])
 for i in range(numOfAgents):
     # # Define initial states for each agent, randomly:
     # init_states = np.random.rand(ns, 1) * 10
-    init_states = inits[i].reshape(ns, 1)
+    init_states = inits[i]
     listOfAgents.append( MyAgent(ni=ni, no=no, ns=ns, tStart=0, \
                                  init_states=init_states, index=i) )
 
@@ -64,17 +71,10 @@ class MyDcontroller(Dcontroller):
         Dcontroller.__init__(self, net)
     
     def rule(self, agent, neighbour):
-        return neighbour.stateTrajectHistory[:, -1] - agent.stateTrajectHistory[:, -1]
+        return neighbour.stateTrajectHistory[-1, 0] - agent.stateTrajectHistory[-1, 0]
     
     def controlProtocol(self, agentIndex: int,  t): # Simple sigma protocol
-        # # DEBUG:
-        # print("For agent ", agentIndex, "-- t: ", t)
-        
-        # # if t == 0 then return zero output vector (since u(0) is 0):
-        # if t == self.net.agents[agentIndex].tStart:
-        #     return np.zeros(shape=(self.no, 1))
-        # Calculate the control input of "agentIndex"-th agent:
-        u = np.zeros(shape=(self.no, 1))
+        u = np.zeros(shape=(self.ni, ))
         for a in self.net.agents:
             if self.net.areNeighbours(a.index, agentIndex):
                 u += self.rule(self.net.agents[agentIndex], a)

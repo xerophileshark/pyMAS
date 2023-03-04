@@ -23,9 +23,8 @@ class Dcontroller(ABC):
 
         """
         self.net = net
-        # Initialize the outputHistory list and no (number of outputs for
-        # each agent):
-        self.no = self.net.agents[0].no
+        # Initialize ni (number of inputs for each agent):
+        self.ni = self.net.agents[0].ni
         
     @abstractmethod
     def rule(self, agent, neighbour):

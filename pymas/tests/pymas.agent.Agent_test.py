@@ -17,7 +17,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # Local application imports
-import agent
+import testing
+from pymas import agent
 
 if __name__ == "__main__":
     
@@ -30,28 +31,38 @@ if __name__ == "__main__":
             # *** Pay attention to the positional and non-positional arguments. ***
             agent.Agent.__init__(self, ni, no, ns, f, tStart=tStart, \
                            init_states=init_states, index=index)
-        
+            print("Agent ", index, " has been initiated.")
+                
         # A 2-state continuous and globally stable LTI dynamics for a SISO 
         # system (default Agent).
-        def f(self, t, x, u):
-            return u
+        def f(self, x, t, u):
+            A = np.array([[0, 1], [-1, -2]])
+            B = np.array([0, 0]).reshape(self.ns,)
+            return np.dot(A, x) + np.dot(B, u)
+        
+        def output(self):
+            return 0
     
     # Creating an agent
-    init_states = np.array([[4], [6]])
-    a1 = myAgent(ni=1, no=1, ns=2, tStart=0, \
-                                 init_states=init_states, index=1)
+    a1 = myAgent(init_states=np.array([4, 6]), index=1)
     
     # Simulation
-    end_time = 5
-    init_time = 0
-    time_step = 0.1
-    numOfIterations = int( (end_time - init_time) // time_step )
-    time_list = np.linspace(start=init_time, stop=end_time, \
-                                num=numOfIterations+1, endpoint=True)
-    # Main for loop:
-    for t in time_list[1:]:
-        u = np.zeros(shape=(a1.ni, 1))
-        idx = np.where(time_list == t)
-        t_prev = time_list[int(idx[0])-1]
-        a1.evolve(t, u)
+    steps = 100
+    Ts = 0.1
+    # u = np.zeros(shape=(a1.ni, 1))
+    u = 0
+    for i in range(steps+1):
+        a1.evolve((i+1)*Ts, u)
         
+    
+    #DEBUG
+    # print("DEBUG: a1.stateTrajectHistory.shape:", a1.stateTrajectHistory.shape)
+    
+    #Plot resulting trajectories
+    # print("DEBUG: a1.times.shape:", a1.times.shape)
+    plt.plot(a1.time, a1.stateTrajectHistory[:, 0], label=r"$x_1$")
+    plt.plot(a1.time, a1.stateTrajectHistory[:, 1], label=r"$x_2$")
+    plt.legend(title = "States")
+    plt.title("Dynamics evolution of agent {}".format(a1.index))
+    plt.xlabel(r"$t$")
+    plt.show()

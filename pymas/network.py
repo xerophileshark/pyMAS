@@ -40,7 +40,10 @@ class Network:
         Checks if two agents are neighbours by their indices.
         NOTE: Indexing of adjacency matrix in this function is assumed to
         start from 0.
+        Note: For now, we assume the graph is bi-directional.
+        Note: Rows are "tail" indices and Columns are "head" indices.
         
+        *** ORDER IS IMPORTANT FOR UNI-DIRECTIONAL GRAPHS. ***
         *** WE SHOULD CHECK FOR NON-SYMMETRIC MATRICES, TOO. ***
         """       
         if agentIndex1 != agentIndex2:

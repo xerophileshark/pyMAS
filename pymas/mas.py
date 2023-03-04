@@ -81,7 +81,7 @@ class MAS:
     
     def plotAll(self):
         for a in self.network.agents:
-            plt.plot(a.times, a.stateTrajectHistory.reshape(len(a.times), ))
+            plt.plot(a.time, a.stateTrajectHistory)
         plt.grid()
         plt.show()
         

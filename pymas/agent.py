@@ -10,7 +10,7 @@ from abc import ABC, abstractmethod
 
 # Third party imports
 import numpy as np
-from scipy.integrate import ode
+from scipy.integrate import odeint
 
 # Local application imports
 
@@ -18,7 +18,7 @@ from scipy.integrate import ode
 class Agent(ABC):
     
     def __init__(self, ni=1, no=1, ns=2, f=None, *, tStart=0, \
-                 init_states=None, index: int=None):
+                 init_states=None, evolve_points=10, index: int=None):
         """
         Parameters
         ----------
@@ -38,6 +38,9 @@ class Agent(ABC):
         init_states : TYPE, optional and Keyword-only argument
             DESCRIPTION. The initial values for states. The default is
             the zero vector.
+        evolve_points : TYPE, optional and Keyword-only argument
+            DESCRIPTION. The default is 10. Evolve points is the number of
+            points in each evolve call.
         index : TYPE, optional and Keyword-only argument
             DESCRIPTION. The default is None. But it should be set in higher
             level classes.
@@ -56,17 +59,16 @@ class Agent(ABC):
         
         # Set simulation parameters and initial states (time is in seconds)
         self.tStart = tStart # tStart is always 0
-        self.times = np.zeros(shape=(1,), dtype="float")
-        if type(init_states) == np.ndarray and init_states.shape == (self.ns, 1):
-            self.stateTrajectHistory = init_states
+        self.time = tStart * np.ones(shape=(1,), dtype="float")
+        self.num_evolve_points = evolve_points
+        if type(init_states) == np.ndarray and init_states.shape == (self.ns,):
+            self.stateTrajectHistory = init_states.reshape((1, self.ns))
         else:
-            self.stateTrajectHistory = np.zeros(shape=(self.ns, 1))
+            print("Initial states must be like")
+            self.stateTrajectHistory = np.zeros(shape=(1, self.ns))
+            print(self.stateTrajectHistory)
         # Set inputTrajectory (Control input trajectory):
-        self.inputTrajectory = np.zeros(shape=(self.ni, 1))
-        
-        # Set the ODE solver
-        self.r = ode(self.f).set_integrator("dopri5") # *** PASS BY REFRENCE??
-        self.r.set_initial_value(self.stateTrajectHistory[:, 0], self.tStart)        
+        self.inputTrajectory = np.zeros(shape=(self.ni,))
         
         # Agent's index
         if index != None:
@@ -78,7 +80,7 @@ class Agent(ABC):
         # print("DEBUG: Agent {} is instantiated.".format(self.index))
     
     @abstractmethod
-    def f(self, t, x, u): # -> output type
+    def f(self, x, t, u): # -> output type
         """
         This is the default function in dynamics equation of the agent
         in the form of state ODE equations:
@@ -91,8 +93,9 @@ class Agent(ABC):
         
         Arguments
         ---------
-        t: The next time step to solve ode from current time to that time.
+        *** Order of arguments is very important. ***
         x: The initial ( x(t=0) ) or previous step's ( x(t-1) ) state vector
+        t: The next time step to solve ode from current time to that time.
         with appropriate dimention.
         u: The control input at time t with appropriate dimention.
         
@@ -104,30 +107,6 @@ class Agent(ABC):
         A = np.random.rand(self.ns, self.ns)
         B = np.zeros(self.ns)
         return np.dot(A, x) + np.dot(B, u)
-    
-    # def evolve(self, t, u):
-    #     """
-    #     This is the function that is called in each time step to evolve the
-    #     dynamcis of the agent.
-
-    #     Arguments
-    #     ---------
-    #     t: Next simulation time. It is passed by MAS class.
-    #     --> ***: in repeated calls, t should be increased.
-    #     u: Cooperative control input which is passed by MAS and Network
-    #     classes.--> *** NOTE: This may change!
-        
-    #     Returns
-    #     -------
-    #     None.
-
-    #     """
-    #     self.r.set_f_params(u)
-    #     res = self.r.integrate(t)
-    #     if not self.r.successful():
-    #         raise RuntimeError("Agent.agent.evolve(): Could not integrate")
-    #     self.times = np.append(self.times, t)
-    #     self.stateTrajectHistory = np.append(self.stateTrajectHistory, res.reshape((self.ns, 1)), axis=1)
 
     def evolve(self, t: float, u):
         """
@@ -138,21 +117,49 @@ class Agent(ABC):
         ---------
         t : Next simulation time. It is passed by MAS class.
         u : Cooperative control input which is passed by Dcontroller class.
+        u should be a 1-D vector and is assumed piecewise constant.
         
         Returns
         -------
         None.
 
         """
-        self.r.set_f_params(u) # set the control input at current time ( u(t0) ).
-        res = self.r.integrate(t)
-        if not self.r.successful():
-            raise RuntimeError("Agent.agent.evolve(): Could not integrate")
-        self.times = np.append(self.times, t)
-        self.stateTrajectHistory = np.append(self.stateTrajectHistory, \
-                                             res.reshape((self.ns, 1)), axis=1)
-        self.inputTrajectory = np.append(self.inputTrajectory, u, axis=1)
         
+        t_list = np.linspace(self.time[-1], t, self.num_evolve_points)
+        
+        if self.stateTrajectHistory.ndim == 1:
+            x0 = self.stateTrajectHistory[:].reshape(1, self.ns)
+        else:
+            x0 = self.stateTrajectHistory[-1]
+            
+        sol = odeint(self.f, x0.reshape((self.ns,)), t_list, args=(u,))
+        
+        self.time = np.append(self.time, t_list[1:], axis=0)
+        self.stateTrajectHistory = np.append(self.stateTrajectHistory, \
+                                             sol[1:], axis=0)
+        self.inputTrajectory = np.append(self.inputTrajectory, u)
+    
+    @abstractmethod
+    def output(self, x, u):
+        """
+        
+
+        Parameters
+        ----------
+        x : TYPE ndarray
+            The state of the system.
+        u : 
+            The input to the system.
+
+        Returns
+        -------
+        C * self.stateTrajectHistory[-1] + D * u
+
+        """
+        C = np.array([[1, 0], [0, 1]])
+        D = np.array([[0, 0], [0, 0]])
+        return np.dot(C, x) + np.dot(D, u)
+    
 # %% Handle direct executions
 if __name__ == "__main__":
     print("agent.py is not an executable module!")
