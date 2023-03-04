@@ -36,6 +36,9 @@ class MyAgent(Agent):
     # My custom dynamics: Single integrator: x_dot(t) = u(t) => f = u
     def f(self, t, x, u):
         return u
+    
+    def output(self):
+        return
 
 class MyFaultyAgent(Agent):
     
@@ -53,6 +56,9 @@ class MyFaultyAgent(Agent):
         if t >= 10:
             fault = 0.5
         return u + fault
+    
+    def output(self):
+        return
 
 # Create a list of (e.g. six) agents with appropriate indexes (start from 0):  
 listOfAgents = []
