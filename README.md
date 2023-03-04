@@ -132,14 +132,13 @@ mas.run(0, 15, 0.05)
 ```
 ## Examples
 
-There are three examples ``, ``, and `` for , respectively. The results of these three examples are 
+There are three examples `testSimulation1.py` and `testSimulation2.py` for homogenous MAS
+of order one and two, respectively. The results of these three examples are 
 plotted below.
 
-![]()
+![result1](https://user-images.githubusercontent.com/30368346/222903302-efa74c76-fb56-4733-a57b-9c179fea0861.png)
 
-![]()
-
-![]()
+![result2](https://user-images.githubusercontent.com/30368346/222903308-5c550e73-6017-43f5-9133-e2693f2ac7ca.png)
 
 ## UML Class Diagram
 
@@ -147,4 +146,4 @@ plotted below.
 
 ## Bibliography
 
-[1] R. Olfati-Saber, J. A. Fax and R. M. Murray, "Consensus and Cooperation in Networked Multi-Agent Systems," in *Proceedings of the IEEE*, vol. 95, no. 1, pp. 215-233, Jan. 2007, doi: 10.1109/JPROC.2006.887293.
+[1] R. Olfati-Saber, J. A. Fax and R. M. Murray, "Consensus and Cooperation in Networked Multi-Agent Systems," in *Proceedings of the IEEE*, vol. 95, no. 1, pp. 215-233, Jan. 2007, doi: [10.1109/JPROC.2006.887293](https://ieeexplore.ieee.org/document/4118472).
