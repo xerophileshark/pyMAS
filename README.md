@@ -13,10 +13,15 @@ in fact a subset of a larger class of systems in systems and control community c
 The interconnection topology between agents can be represented by directed graphs. The graph edges show 
 the information flow between agents, while the graph nodes represent agents.
 
-In this projects, each agent $i$ is considered dynamical systems of the general form 
+In this projects, each agent $i$ is considered as dynamical systems of the general form 
+
 $$
-\dot{x_i} = f(x_i,t,u_i)
+\dot{x_i}(t) = f(x_i(t),u_i(t),t)
 $$
+
+where $x_i$ is the state vector, $u_i$ is the control input of agent $i$. 
+
+
 
 ## UML Class Diagram
 
