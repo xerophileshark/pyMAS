@@ -44,7 +44,7 @@ $$
 
 where $\mathcal{N}_i$ is the set of agent $i$'s neighboring agents.
 
-For more information on MAS and consensus on graphs, please reffer to [1](#bibliography) and references therein.
+For more information on MAS and consensus on graphs, please reffer to [[1]](#bibliography) and references therein.
 
 ## Usage
 
