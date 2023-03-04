@@ -19,6 +19,7 @@ In this projects, each agent $i$ is considered as continuous-time dynamical syst
 
 $$
 \dot{x}_i(t) = f(x_i(t),u_i(t),t)
+\tag{1}
 $$
 
 where $x_i(t)$ is the state vector, $u_i(t)$ is the control input of agent $i$. The control input 
@@ -35,14 +36,39 @@ $$
 \dot{x}_i(t) = u_i(t)
 $$
 
-the following control law can solve the consensus problem. For more information on MAS and consensus on graphs, 
-please reffer to [1] and references therein.
+the following control law can solve the consensus problem
 
 $$
 u_i(t) = \sum_{j\in \mathcal{N}_i}^{} \big(x_j(t) - x_i(t)\big)
 $$
 
-where \mathcal{N}_i is the set of agent $i$'s neighboring agents.
+where $\mathcal{N}_i$ is the set of agent $i$'s neighboring agents.
+
+For more information on MAS and consensus on graphs, please reffer to [1] and references therein.
+
+## Usage
+
+In order to simulate a MAS with arbitrary dynamics for each agent, the function in (1) should be 
+implemented. For instance, to implement an agent with first-order dynamics we can write:
+
+```python
+from pymas.agent import Agent
+
+# Create my custom Agent class called MyAgent
+class MyAgent(Agent):
+    
+    def __init__(self, ni=1, no=1, ns=2, f=None, *, tStart=0, \
+                 init_states=None, index: int=None):
+        Agent.__init__(self, ni, no, ns, f, tStart=tStart, \
+                       init_states=init_states, index=index)
+    
+    # My custom dynamics: Single integrator: x_dot(t) = u(t) => f = u
+    def f(self, t, x, u):
+        return u
+    
+    def output(self):
+        return
+```
 
 ## UML Class Diagram
 
