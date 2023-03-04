@@ -2,7 +2,7 @@
 """
 Created on Wed Jul 14 22:16:32 2021
 
-@author: Ali
+@author: Ali Abedi
 
 This is a test simulation for 6 agents with stable 2-state dynamics.
 """
